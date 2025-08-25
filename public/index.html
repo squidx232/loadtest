@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Load Testing & Security Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt"></i> Security Load Tester
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text" id="connectionStatus">
+                    <i class="fas fa-circle text-danger"></i> Disconnected
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Main Dashboard -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-rocket"></i> Load Test Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="loadTestForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="targetUrl" class="form-label">Target URL</label>
+                                        <input type="url" class="form-control" id="targetUrl" required 
+                                               placeholder="https://example.com">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="testName" class="form-label">Test Name</label>
+                                        <input type="text" class="form-control" id="testName" 
+                                               placeholder="My Load Test">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="concurrentUsers" class="form-label">Concurrent Users</label>
+                                        <input type="number" class="form-control" id="concurrentUsers" 
+                                               value="10" min="1" max="1000">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="requestsPerSecond" class="form-label">Requests/Second</label>
+                                        <input type="number" class="form-control" id="requestsPerSecond" 
+                                               value="5" min="1" max="100">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="duration" class="form-label">Duration (seconds)</label>
+                                        <input type="number" class="form-control" id="duration" 
+                                               value="60" min="10" max="3600">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="browserInstances" class="form-label">Browser Instances</label>
+                                        <input type="number" class="form-control" id="browserInstances" 
+                                               value="2" min="0" max="10">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="exploitVulnerabilities" checked>
+                                            <label class="form-check-label" for="exploitVulnerabilities">
+                                                <i class="fas fa-bug text-danger"></i> Enable Vulnerability Exploitation
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            Automatically scan and exploit known vulnerabilities during load testing
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-secondary me-md-2" id="stopTestBtn" disabled>
+                                    <i class="fas fa-stop"></i> Stop Test
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="startTestBtn">
+                                    <i class="fas fa-play"></i> Start Load Test
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Real-time Results -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line"></i> Real-time Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="totalRequests">0</div>
+                                    <div class="stat-label">Total Requests</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-success" id="successfulRequests">0</div>
+                                    <div class="stat-label">Successful</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-danger" id="failedRequests">0</div>
+                                    <div class="stat-label">Failed</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="avgResponseTime">0ms</div>
+                                    <div class="stat-label">Avg Response</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <canvas id="responseTimeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Proxy Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-network-wired"></i> Proxy Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="proxyInput" class="form-label">Add Proxy</label>
+                            <input type="text" class="form-control" id="proxyInput" 
+                                   placeholder="http://user:pass@host:port">
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addProxyBtn">
+                            <i class="fas fa-plus"></i> Add Proxy
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshProxiesBtn">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <span id="proxyCount">0</span> proxies available
+                            </small>
+                        </div>
+                        
+                        <div class="proxy-list mt-2" id="proxyList">
+                            <!-- Proxy list will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vulnerability Scanner -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-shield-virus"></i> Vulnerability Scanner</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="scanUrl" class="form-label">Target URL</label>
+                            <input type="url" class="form-control" id="scanUrl" 
+                                   placeholder="https://example.com">
+                        </div>
+                        <button type="button" class="btn btn-warning btn-sm" id="scanBtn">
+                            <i class="fas fa-search"></i> Scan Vulnerabilities
+                        </button>
+                        
+                        <div class="vulnerability-results mt-3" id="vulnerabilityResults">
+                            <!-- Vulnerability results will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test History -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-history"></i> Test History</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="test-history" id="testHistory">
+                            <!-- Test history will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vulnerabilities Found -->
+        <div class="card mt-4" id="vulnerabilitiesCard" style="display: none;">
+            <div class="card-header bg-danger text-white">
+                <h5><i class="fas fa-exclamation-triangle"></i> Vulnerabilities Found</h5>
+            </div>
+            <div class="card-body">
+                <div id="vulnerabilitiesList">
+                    <!-- Vulnerabilities will be listed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Exploitation Attempts -->
+        <div class="card mt-4" id="exploitationCard" style="display: none;">
+            <div class="card-header bg-warning text-dark">
+                <h5><i class="fas fa-bug"></i> Exploitation Attempts</h5>
+            </div>
+            <div class="card-body">
+                <div id="exploitationList">
+                    <!-- Exploitation attempts will be listed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for detailed results -->
+    <div class="modal fade" id="resultsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Detailed results will be shown here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="exportResultsBtn">Export Results</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
