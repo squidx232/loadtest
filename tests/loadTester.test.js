@@ -4,7 +4,6 @@ const TestManager = require('../src/testManager');
 
 // Mock dependencies
 jest.mock('axios');
-jest.mock('puppeteer');
 jest.mock('winston');
 
 describe('LoadTester', () => {

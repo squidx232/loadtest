@@ -13,7 +13,7 @@ This tool is designed for **ethical security testing and research purposes only*
 ### Load Testing Capabilities
 - **Concurrent User Simulation**: Test with up to 1000+ concurrent users
 - **Request Rate Control**: Configurable requests per second
-- **Browser Automation**: Multiple browser instances with Puppeteer
+- **Advanced HTTP Simulation**: Browser-like behavior with realistic headers
 - **Real-time Monitoring**: Live statistics and response time charts
 - **Proxy Support**: Rotate through multiple IP addresses/proxies
 
@@ -79,7 +79,7 @@ This tool is designed for **ethical security testing and research purposes only*
    - Set concurrent users (1-1000)
    - Set requests per second (1-100)
    - Set test duration in seconds
-   - Configure browser instances (0-10)
+   - Configure advanced HTTP instances (0-10)
 
 2. **Enable Vulnerability Testing**
    - Check "Enable Vulnerability Exploitation" for security scanning
@@ -143,7 +143,7 @@ module.exports = {
     maxConcurrentUsers: 1000,
     maxRequestsPerSecond: 100,
     maxTestDuration: 3600,
-    maxBrowserInstances: 10
+    maxAdvancedHttpInstances: 10
   },
   security: {
     enableExploitation: true,
@@ -209,7 +209,7 @@ const response = await fetch('/api/test/start', {
       concurrentUsers: 10,
       requestsPerSecond: 5,
       duration: 60,
-      browserInstances: 2,
+      advancedHttpInstances: 2,
       exploitVulnerabilities: true
     }
   })
@@ -242,7 +242,7 @@ const response = await fetch('/api/test/start', {
 
 2. **High Memory Usage**
    - Reduce concurrent users
-   - Lower browser instances
+   - Lower advanced HTTP instances
    - Increase test intervals
 
 3. **Slow Performance**

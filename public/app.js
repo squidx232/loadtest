@@ -138,7 +138,7 @@ class LoadTestingApp {
         const concurrentUsers = parseInt(document.getElementById('concurrentUsers').value);
         const requestsPerSecond = parseInt(document.getElementById('requestsPerSecond').value);
         const duration = parseInt(document.getElementById('duration').value);
-        const browserInstances = parseInt(document.getElementById('browserInstances').value);
+        const advancedHttpInstances = parseInt(document.getElementById('advancedHttpInstances').value);
         const exploitVulnerabilities = document.getElementById('exploitVulnerabilities').checked;
 
         if (!targetUrl) {
@@ -150,7 +150,7 @@ class LoadTestingApp {
             concurrentUsers,
             requestsPerSecond,
             duration,
-            browserInstances,
+            advancedHttpInstances,
             exploitVulnerabilities
         };
 
@@ -392,7 +392,7 @@ class LoadTestingApp {
                         concurrentUsers: 1,
                         requestsPerSecond: 1,
                         duration: 30,
-                        browserInstances: 1,
+                        advancedHttpInstances: 1,
                         exploitVulnerabilities: true
                     }
                 })

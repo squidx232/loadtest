@@ -1,5 +1,4 @@
 const axios = require('axios');
-const puppeteer = require('puppeteer');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { HttpProxyAgent } = require('http-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
@@ -51,7 +50,7 @@ class LoadTester {
 
     // Start different types of load testing
     await this.startHttpLoadTest(testState, callback);
-    await this.startBrowserLoadTest(testState, callback);
+    await this.startAdvancedHttpLoadTest(testState, callback);
     await this.startVulnerabilityExploitation(testState, callback);
   }
 
@@ -109,81 +108,70 @@ class LoadTester {
     }, duration * 1000);
   }
 
-  async startBrowserLoadTest(testState, callback) {
+  async startAdvancedHttpLoadTest(testState, callback) {
     const { targetUrl, config } = testState;
-    const { browserInstances } = config;
+    const { advancedHttpInstances = 5 } = config;
 
-    for (let i = 0; i < browserInstances; i++) {
-      this.launchBrowserInstance(targetUrl, testState, callback);
+    // Simulate browser-like behavior with advanced HTTP requests
+    for (let i = 0; i < advancedHttpInstances; i++) {
+      this.startAdvancedHttpInstance(targetUrl, testState, callback);
     }
   }
 
-  async launchBrowserInstance(targetUrl, testState, callback) {
-    try {
-      const proxy = await this.proxyManager.getRandomProxy();
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu'
-        ]
-      });
-
-      const page = await browser.newPage();
-      
-      if (proxy) {
-        await page.authenticate({
-          username: proxy.username,
-          password: proxy.password
-        });
+  async startAdvancedHttpInstance(targetUrl, testState, callback) {
+    const interval = setInterval(async () => {
+      if (!testState.isRunning) {
+        clearInterval(interval);
+        return;
       }
 
-      // Set random user agent
-      await page.setUserAgent(new UserAgent().toString());
+      try {
+        const proxy = await this.proxyManager.getRandomProxy();
+        const userAgent = new UserAgent();
+        
+        // Simulate browser-like requests with headers
+        const browserHeaders = {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0'
+        };
 
-      // Monitor for vulnerabilities
-      page.on('response', async (response) => {
-        await this.analyzeResponseForVulnerabilities(response, testState, callback);
-      });
+        const startTime = Date.now();
+        const response = await this.makeHttpRequest(targetUrl, proxy, userAgent, { headers: browserHeaders });
+        const responseTime = Date.now() - startTime;
 
-      // Continuous browsing
-      const browseInterval = setInterval(async () => {
-        if (!testState.isRunning) {
-          clearInterval(browseInterval);
-          await browser.close();
-          return;
-        }
+        testState.results.requests++;
+        testState.results.responseTimes.push(responseTime);
 
-        try {
-          const startTime = Date.now();
-          await page.goto(targetUrl, { waitUntil: 'networkidle2' });
-          const responseTime = Date.now() - startTime;
-
-          testState.results.requests++;
-          testState.results.responseTimes.push(responseTime);
+        if (response.success) {
           testState.results.successful++;
-
-          callback(testState.results);
-        } catch (error) {
+          // Analyze response for vulnerabilities
+          await this.analyzeResponseForVulnerabilities(response, testState, callback);
+        } else {
           testState.results.failed++;
           testState.results.errors.push({
             timestamp: new Date(),
-            error: error.message,
-            type: 'browser'
+            error: response.error,
+            type: 'advanced-http'
           });
-          callback(testState.results);
         }
-      }, 5000);
 
-      testState.intervals.push(browseInterval);
-    } catch (error) {
-      this.logger.error('Error launching browser instance:', error);
-    }
+        callback(testState.results);
+      } catch (error) {
+        testState.results.failed++;
+        testState.results.errors.push({
+          timestamp: new Date(),
+          error: error.message,
+          type: 'advanced-http'
+        });
+        callback(testState.results);
+      }
+    }, 5000);
+
+    testState.intervals.push(interval);
   }
 
   async startVulnerabilityExploitation(testState, callback) {

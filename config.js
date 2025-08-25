@@ -8,7 +8,7 @@ module.exports = {
     maxConcurrentUsers: parseInt(process.env.MAX_CONCURRENT_USERS) || 1000,
     maxRequestsPerSecond: parseInt(process.env.MAX_REQUESTS_PER_SECOND) || 100,
     maxTestDuration: parseInt(process.env.MAX_TEST_DURATION) || 3600,
-    maxBrowserInstances: parseInt(process.env.MAX_BROWSER_INSTANCES) || 10,
+    maxAdvancedHttpInstances: parseInt(process.env.MAX_ADVANCED_HTTP_INSTANCES) || 10,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT) || 10000
   },
   
@@ -51,18 +51,5 @@ module.exports = {
   data: {
     retentionDays: parseInt(process.env.DATA_RETENTION_DAYS) || 30,
     cleanupInterval: parseInt(process.env.CLEANUP_INTERVAL) || 86400000 // 24 hours
-  },
-  
-  browser: {
-    headless: process.env.BROWSER_HEADLESS !== 'false',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--disable-gpu'
-    ]
   }
 };
